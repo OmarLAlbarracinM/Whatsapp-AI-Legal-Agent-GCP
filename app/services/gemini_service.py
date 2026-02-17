@@ -2,7 +2,7 @@ import vertexai
 from vertexai.generative_models import GenerativeModel, Part
 from app.core.config import settings
 from app.utils.tools_def import calendar_tool
-from app.services.calendar_service import consultar_disponibilidad_logic
+from app.services.calendar_service import consultar_disponibilidad
 
 vertexai.init(project=PROJECT_ID, location=LOCATION)
 

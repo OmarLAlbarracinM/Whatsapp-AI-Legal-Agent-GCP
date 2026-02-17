@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv() # Carga el archivo .env
+load_dotenv() 
 
 class Settings:
     PROJECT_ID = os.getenv("PROJECT_ID")
