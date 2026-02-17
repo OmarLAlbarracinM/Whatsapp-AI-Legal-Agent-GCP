@@ -1,0 +1,22 @@
+# Entornos virtuales
+venv/
+.env
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Archivos de configuración de entorno (CRÍTICO)
+.env
+.env.local
+
+# Credenciales de Google (CRÍTICO)
+*.json
+credentials.json
+service_account.json
+client_secret.json
+
+# Logs y bases de datos locales
+*.log
+*.sqlite
