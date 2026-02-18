@@ -3,8 +3,11 @@ from vertexai.generative_models import GenerativeModel, Part
 from app.core.config import settings
 from app.utils.tools_def import calendar_tool
 from app.services.calendar_service import consultar_disponibilidad
+from app.core.config import settings
 
-vertexai.init(project=PROJECT_ID, location=LOCATION)
+
+vertexai.init(project=settings.PROJECT_ID, location=settings.LOCATION)
+
 
 
 model = GenerativeModel(
