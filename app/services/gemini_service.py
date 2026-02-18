@@ -37,7 +37,7 @@ def process_user_message(history, user_text):
         fn = response.candidates[0].content.parts[0].function_call
         if fn.name == "consultar_disponibilidad":
             # Llamamos a la lógica del calendario (importada de calendar_service)
-            resultado = consultar_disponibilidad_logic(fn.args["fecha"])
+            resultado = consultar_disponibilidad(fn.args["fecha"])
             
             # Devolvemos respuesta a Gemini
             response = chat.send_message(
