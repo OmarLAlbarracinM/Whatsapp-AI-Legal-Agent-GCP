@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from app.routers import whatsapp
+from app.core.logger import setup_logging
+
+setup_logging()
 
 app = FastAPI(title="Abogado Bot API", version="1.0.0")
 
