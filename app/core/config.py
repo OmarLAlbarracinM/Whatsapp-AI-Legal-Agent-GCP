@@ -9,5 +9,6 @@ class Settings:
     VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
     WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
     PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")
+    DATA_STORE_ID = os.getenv("DATA_STORE_ID")
 
 settings = Settings()
