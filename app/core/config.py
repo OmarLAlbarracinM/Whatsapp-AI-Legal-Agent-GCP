@@ -5,7 +5,8 @@ load_dotenv()
 
 class Settings:
     PROJECT_ID = os.getenv("PROJECT_ID")
-    LOCATION = os.getenv("LOCATION", "us-central1")
+    LOCATION = os.getenv("LOCATION")
+    RAG_LOCATION = os.getenv("RAG_LOCATION")
     VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
     WHATSAPP_TOKEN = os.getenv("WHATSAPP_TOKEN")
     PHONE_NUMBER_ID = os.getenv("PHONE_NUMBER_ID")

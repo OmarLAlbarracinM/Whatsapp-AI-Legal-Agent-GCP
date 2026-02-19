@@ -6,7 +6,7 @@ class RAGService:
     def __init__(self):
         # Usamos las variables centralizadas en settings
         self.project_id = settings.PROJECT_ID
-        self.location = "global"
+        self.location = settings.RAG_LOCATION
         self.data_store_id = settings.DATA_STORE_ID
         self.client = discoveryengine.SearchServiceClient()
 
