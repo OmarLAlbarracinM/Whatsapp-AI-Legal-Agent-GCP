@@ -1,5 +1,6 @@
 from google.cloud import discoveryengine_v1beta as discoveryengine
 from app.core.config import settings
+from app.core.logger import logger
 
 class RAGService:
     def __init__(self):
@@ -10,6 +11,7 @@ class RAGService:
         self.client = discoveryengine.SearchServiceClient()
 
     def get_legal_context(self, query: str) -> str:
+        logger.info("Buscando contexto legal")
         # Definimos la ruta usando los settings cargados
         serving_config = self.client.serving_config_path(
             project=self.project_id,
@@ -32,5 +34,6 @@ class RAGService:
             # Extraemos el snippet que Google generó del PDF legal
             snippet = data.get('snippets', [{}])[0].get('snippet', "")
             context_chunks.append(snippet)
+        logger.info("Contexto legal encontrado chunks=%s", len(context_chunks))
             
         return "\n\n".join(context_chunks)

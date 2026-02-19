@@ -2,6 +2,7 @@ import vertexai
 from vertexai.generative_models import GenerativeModel
 from app.core.config import settings
 from app.services.rag_service import RAGService
+from app.core.logger import logger
 
 vertexai.init(project=settings.PROJECT_ID, location=settings.LOCATION)
 
@@ -25,7 +26,9 @@ def process_user_message(history, user_text):
     """Maneja el chat integrando RAG (Retrieval-Augmented Generation)."""
     
     # 1. Recuperar contexto legal de los PDFs en Vertex AI Search
+    logger.info("Iniciando RAG para mensaje de usuario")
     contexto_legal = rag_service.get_legal_context(user_text)
+    logger.debug("Contexto legal obtenido len=%s", len(contexto_legal))
     
     # 2. Construir el prompt enriquecido con el contexto
     prompt_enriquecido = f"""
@@ -37,6 +40,8 @@ def process_user_message(history, user_text):
     """
     
     chat = model.start_chat(history=history)
+    logger.info("Enviando mensaje a modelo")
     response = chat.send_message(prompt_enriquecido)
+    logger.info("Respuesta de modelo recibida")
     
     return response.text
