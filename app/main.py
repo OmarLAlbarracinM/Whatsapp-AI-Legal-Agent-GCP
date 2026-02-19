@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from app.routers import whatsapp
 from app.core.logger import setup_logging
+from app.core.config import settings
 
 setup_logging()
 
@@ -12,7 +13,7 @@ app.include_router(whatsapp.router)
 from google.cloud import discoveryengine_v1beta as discoveryengine
 
 # Configura tus datos aquí para la prueba
-project_id = "TU_ID_DE_PROYECTO_TEXTO" 
+project_id = settings.PROJECT_ID
 location = "us"
 
 client = discoveryengine.DataStoreServiceClient(
