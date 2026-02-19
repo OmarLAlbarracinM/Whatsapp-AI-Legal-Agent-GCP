@@ -8,7 +8,16 @@ class RAGService:
         self.project_id = settings.PROJECT_ID
         self.location = settings.RAG_LOCATION
         self.data_store_id = settings.DATA_STORE_ID
-        self.client = discoveryengine.SearchServiceClient()
+        
+        # endpoint regional
+        client_options = {
+            "api_endpoint": "us-discoveryengine.googleapis.com"
+        }
+        
+        logger.info(f"Conectando al Data Store '{self.data_store_id}' en la ubicación '{self.location}'")
+        
+        self.client = discoveryengine.SearchServiceClient(client_options=client_options)
+        
 
     def get_legal_context(self, query: str) -> str:
         logger.info("Buscando contexto legal")
