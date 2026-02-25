@@ -8,3 +8,5 @@ google-api-python-client
 google-auth
 google-cloud-storage
 google-cloud-vertexai
+google-cloud-aiplatform
+vertexai
