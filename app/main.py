@@ -1,39 +1,62 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.routers import whatsapp
-from app.core.logger import setup_logging
 from app.core.config import settings
+from app.core.logger import logger
 
-setup_logging()
+# Crear aplicación FastAPI
+app = FastAPI(
+    title="Abogado Bot Backend",
+    description="Backend para chatbot legal en WhatsApp usando Conversational Agent de GCP",
+    version="1.0.0",
+    docs_url="/docs",
+    openapi_url="/openapi.json"
+)
 
-app = FastAPI(title="Abogado Bot API", version="1.0.0")
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Incluir rutas
+# Incluir routers
 app.include_router(whatsapp.router)
 
-from google.cloud import discoveryengine_v1beta as discoveryengine
 
-# Configura tus datos aquí para la prueba
-project_id = settings.PROJECT_ID
-location = "us"
+@app.get("/")
+async def root():
+    """Health check endpoint."""
+    return {
+        "status": "ok",
+        "service": "Abogado Bot Backend",
+        "environment": settings.ENV,
+        "version": "1.0.0"
+    }
 
-client = discoveryengine.DataStoreServiceClient(
-    client_options={"api_endpoint": "us-discoveryengine.googleapis.com"}
-)
-parent = f"projects/{project_id}/locations/{location}/collections/default_collection"
 
-print(f"--- Listando Data Stores disponibles en {project_id} ({location}) ---")
-try:
-    response = client.list_data_stores(parent=parent)
-    found = False
-    for ds in response:
-        found = True
-        print(f"✅ Encontrado: {ds.name}")
-        print(f"👉 ID exacto para tu ENV: {ds.name.split('/')[-1]}")
-    if not found:
-        print("❌ No se encontraron Data Stores en esta ubicación. Verifica el Project ID.")
-except Exception as e:
-    print(f"⚠️ Error al conectar: {e}")
+@app.get("/health")
+async def health_check():
+    """Healthcheck endpoint para monitoreo."""
+    return {
+        "status": "healthy",
+        "project_id": settings.PROJECT_ID,
+        "agent_id": settings.AGENT_ID[:20] + "..." if settings.AGENT_ID else "NOT SET"
+    }
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+
+@app.on_event("startup")
+async def startup_event():
+    """Ejecuta al iniciar la aplicación."""
+    logger.info(f"🚀 Abogado Bot Backend iniciado")
+    logger.info(f"   Entorno: {settings.ENV}")
+    logger.info(f"   Proyecto GCP: {settings.PROJECT_ID}")
+    logger.info(f"   Agente: {settings.AGENT_ID[:20]}..." if settings.AGENT_ID else "   ⚠️ AGENT_ID NO CONFIGURADO")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Ejecuta al cerrar la aplicación."""
+    logger.info("🛑 Abogado Bot Backend cerrado")

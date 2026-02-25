@@ -1,57 +1,22 @@
-import vertexai
-from vertexai.generative_models import GenerativeModel
-from app.core.config import settings
-from app.services.rag_service import RAGService
 from app.services.agent_service import ConversationalAgentService
 from app.core.logger import logger
 
-vertexai.init(project=settings.PROJECT_ID, location=settings.LOCATION)
-
-rag_service = RAGService()
 agent_service = ConversationalAgentService()
 
-model = GenerativeModel(
-    "gemini-2.0-flash-lite",
-    system_instruction=[
-        "Eres un asistente legal experto del bufete de abogados en Bogotá.",
-        "Tu tono es profesional, cordial y eficiente.",
-        "Habla siempre en español colombiano formal.",
-        "Utiliza la información del 'CONTEXTO LEGAL' proporcionado para responder.",
-        "Solo habla de terminos legales relacionados permisos notariales, poderes autenticados, permisos de salida de menores y citas con abogados.",
-        "Si la respuesta no está en el CONTEXTO LEGAL, di que no tienes esa información y ofrécele una cita con un abogado.",
-        "No hables de otros temas, y si el usuario insiste, dile que no puedes ayudarle con eso."
-    ],
-)
 
-
-def process_user_message(history, user_text):
-    """Maneja el chat integrando RAG (Retrieval-Augmented Generation)."""
+def process_user_message(history, user_text, user_id: str = None):
+    """Maneja el chat usando el Conversational Agent."""
+    logger.info(f"Enviando mensaje al Conversational Agent: user_id={user_id}")
     
-    # 1. Recuperar contexto legal de los PDFs en Vertex AI Search
-    logger.info("Iniciando RAG para mensaje de usuario")
-    contexto_legal = rag_service.get_legal_context(user_text)
-    logger.debug("Contexto legal obtenido len=%s", len(contexto_legal))
+    if not user_id:
+        logger.warning("user_id no proporcionado al process_user_message")
+        user_id = "unknown"
     
-    # 2. Construir el prompt enriquecido con el contexto
-    prompt_enriquecido = f"""
-    CONTEXTO LEGAL:
-    {contexto_legal}
-    
-    PREGUNTA DEL USUARIO:
-    {user_text}
-    """
-    
-    chat = model.start_chat(history=history)
-    logger.info("Enviando mensaje a modelo")
-    response = chat.send_message(prompt_enriquecido)
-    logger.info("Respuesta de modelo recibida")
-    
-    return response.text
-
-
-def process_user_message_agent(history, user_text):
-    """Maneja el chat usando el Conversational Agent de GCP."""
-    logger.info("Enviando mensaje al Conversational Agent")
-    response = agent_service.send_message_to_agent(user_text)
+    response = agent_service.send_message_to_agent(user_id, user_text)
     logger.info("Respuesta del Agent recibida")
     return response
+
+
+def process_user_message_agent(history, user_text, user_id: str = None):
+    """Alias para compatibilidad."""
+    return process_user_message(history, user_text, user_id)
