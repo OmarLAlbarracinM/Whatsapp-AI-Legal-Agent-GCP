@@ -2,9 +2,7 @@ fastapi
 uvicorn
 requests
 python-dotenv
-google-cloud-aiplatform
+google-cloud-dialogflow
 google-cloud-firestore
 google-api-python-client
 google-auth
-google-cloud-aiplatform
-google-cloud-discoveryengine

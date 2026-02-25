@@ -2,11 +2,13 @@ import vertexai
 from vertexai.generative_models import GenerativeModel
 from app.core.config import settings
 from app.services.rag_service import RAGService
+from app.services.agent_service import ConversationalAgentService
 from app.core.logger import logger
 
 vertexai.init(project=settings.PROJECT_ID, location=settings.LOCATION)
 
 rag_service = RAGService()
+agent_service = ConversationalAgentService()
 
 model = GenerativeModel(
     "gemini-2.0-flash-lite",
@@ -45,3 +47,11 @@ def process_user_message(history, user_text):
     logger.info("Respuesta de modelo recibida")
     
     return response.text
+
+
+def process_user_message_agent(history, user_text):
+    """Maneja el chat usando el Conversational Agent de GCP."""
+    logger.info("Enviando mensaje al Conversational Agent")
+    response = agent_service.send_message_to_agent(user_text)
+    logger.info("Respuesta del Agent recibida")
+    return response

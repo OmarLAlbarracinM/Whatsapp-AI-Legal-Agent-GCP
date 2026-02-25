@@ -20,22 +20,23 @@ async def handle_ai_logic(user_number: str, user_text: str):
     """Lógica asíncrona para no bloquear el webhook de WhatsApp."""
     try:
         logger.info(f"🚀 Iniciando procesamiento para {user_number}")
-        # 1. Recuperar historial (últimos 10 mensajes)
-        history = get_chat_history(user_number)
         
-        # 2. Procesar con IA (que ahora incluye RAG internamente)
-        bot_reply = process_user_message(history, user_text)
+        # El Agent mantiene el contexto por sesión (user_number)
+        # No necesitas recuperar historial manualmente
+        bot_reply = process_user_message(None, user_text)  # history puede ser None
         
         # 3. Guardar persistencia en Firestore
         save_message(user_number, "user", user_text)
         save_message(user_number, "model", bot_reply)
         
-        # 4. Enviar respuesta final al usuario en Bogotá
+        # Enviar respuesta
         send_whatsapp_message(user_number, bot_reply)
         
         logger.info(f"✅ Respuesta enviada exitosamente a {user_number}")
     except Exception as e:
         logger.exception(f"❌ Error en lógica de IA: {e}")
+        send_whatsapp_message(user_number, "Lo siento, hubo un error. Intenta de nuevo.")
+
 
 @router.post("/webhook")
 async def handle_messages(request: Request, background_tasks: BackgroundTasks):
