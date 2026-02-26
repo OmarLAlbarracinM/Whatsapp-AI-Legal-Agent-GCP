@@ -6,3 +6,4 @@ google-cloud-aiplatform
 google-cloud-firestore
 google-api-python-client
 google-auth
+google-cloud-dialogflow-cx

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Request, Response
 from app.core.config import settings
-from app.services.gemini_service import process_user_message
+from app.services.agent_service import send_to_agent
 from app.services.whatsapp_service import send_whatsapp_message
 
 router = APIRouter()
@@ -17,18 +17,16 @@ async def webhook(request: Request):
     try:
         body = await request.json()
         entry = body['entry'][0]['changes'][0]['value']
-        
+
         if 'messages' in entry:
             user_number = entry['messages'][0]['from']
             user_text = entry['messages'][0]['text']['body']
-            
-            # Procesa solo con Gemini
-            response_text = await process_user_message(user_text)
-            
+
+            response_text = await send_to_agent(user_number, user_text)
+
             await send_whatsapp_message(user_number, response_text)
-            
+
     except Exception as e:
         print(f"Error procesando webhook: {e}")
-        # En producción, usa logging real, no print
-        
+
     return {"status": "ok"}

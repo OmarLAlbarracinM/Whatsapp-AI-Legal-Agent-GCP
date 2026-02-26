@@ -1,47 +1,45 @@
-from google.cloud import dialogflow_v3 as dialogflow
+import asyncio
+from google.cloud import dialogflowcx_v3beta1 as dialogflow
+from google.api_core.client_options import ClientOptions
 from app.core.config import settings
-from app.core.logger import logger
-import uuid
 
-class ConversationalAgentService:
-    def __init__(self):
-        self.project_id = settings.PROJECT_ID
-        self.agent_id = settings.AGENT_ID  # Necesitas agregar esto a config.py
-        self.location = settings.LOCATION
-        
-        self.client = dialogflow.SessionsClient()
-        logger.info(f"Agent Service inicializado con agent_id={self.agent_id}")
-    
-    def send_message_to_agent(self, user_id: str, user_message: str) -> str:
-        """Envía un mensaje al Conversational Agent y retorna la respuesta."""
-        try:
-            # Crear sesión única por usuario (mantiene contexto)
-            session_id = user_id  # Usar el número de WhatsApp como session ID
-            session_path = self.client.session_path(
-                project=self.project_id,
-                location=self.location,
-                agent=self.agent_id,
-                session=session_id,
-            )
-            
-            # Crear request con el mensaje del usuario
-            text_input = dialogflow.TextInput(text=user_message)
-            request_input = dialogflow.QueryInput(text=text_input, language_code="es")
-            
-            request = dialogflow.DetectIntentRequest(
-                session=session_path,
-                query_input=request_input,
-            )
-            
-            logger.info(f"Enviando mensaje al Agent user={user_id}")
-            response = self.client.detect_intent(request=request)
-            
-            # Extraer la respuesta
-            agent_response = response.query_result.response_messages[0].text.text[0]
-            
-            logger.info(f"Respuesta del Agent recibida user={user_id}")
-            return agent_response
-            
-        except Exception as e:
-            logger.exception(f"Error comunicando con Agent user={user_id}")
-            return "Lo siento, hubo un error procesando tu solicitud. Por favor intenta de nuevo."
+
+def _send_to_agent_sync(session_id: str, user_text: str) -> str:
+    """Lógica sincrónica: envía mensaje al agente Dialogflow CX y retorna la respuesta."""
+    client_options = ClientOptions(
+        api_endpoint=f"{settings.LOCATION}-dialogflow.googleapis.com"
+    )
+    session_client = dialogflow.SessionsClient(client_options=client_options)
+
+    session_path = (
+        f"projects/{settings.PROJECT_ID}"
+        f"/locations/{settings.LOCATION}"
+        f"/agents/{settings.AGENT_ID}"
+        f"/sessions/{session_id}"
+    )
+
+    text_input = dialogflow.TextInput(text=user_text)
+    query_input = dialogflow.QueryInput(text=text_input, language_code="es")
+
+    request = dialogflow.DetectIntentRequest(
+        session=session_path,
+        query_input=query_input,
+    )
+
+    response = session_client.detect_intent(request=request)
+
+    responses = []
+    for message in response.query_result.response_messages:
+        if message.text and message.text.text:
+            responses.append(message.text.text[0])
+
+    return "\n".join(responses) if responses else "No obtuve respuesta del agente."
+
+
+async def send_to_agent(session_id: str, user_text: str) -> str:
+    """Envía un mensaje al agente Dialogflow CX y retorna la respuesta (async)."""
+    try:
+        return await asyncio.to_thread(_send_to_agent_sync, session_id, user_text)
+    except Exception as e:
+        print(f"Error comunicando con el agente: {e}")
+        return "Lo siento, hubo un error procesando tu solicitud. Por favor intenta de nuevo."
