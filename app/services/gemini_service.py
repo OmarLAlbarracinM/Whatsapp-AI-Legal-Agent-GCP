@@ -1,14 +1,12 @@
+import asyncio
 import vertexai
 from vertexai.generative_models import GenerativeModel, Part
 from app.core.config import settings
 from app.utils.tools_def import calendar_tool
 from app.services.calendar_service import consultar_disponibilidad
-from app.core.config import settings
 
 
 vertexai.init(project=settings.PROJECT_ID, location=settings.LOCATION)
-
-
 
 model = GenerativeModel(
     "gemini-2.0-flash-lite",
@@ -30,24 +28,25 @@ model = GenerativeModel(
 )
 
 
-def process_user_message(history, user_text):
-    """Maneja el chat y la lógica de Function Calling"""
-    chat = model.start_chat(history=history)
+def _process_sync(user_text: str) -> str:
+    """Lógica sincrónica de Gemini con Function Calling."""
+    chat = model.start_chat()
     response = chat.send_message(user_text)
-    
-    # Manejo de Function Calling
+
     if response.candidates[0].content.parts[0].function_call:
         fn = response.candidates[0].content.parts[0].function_call
         if fn.name == "consultar_disponibilidad":
-            # Llamamos a la lógica del calendario (importada de calendar_service)
             resultado = consultar_disponibilidad(fn.args["fecha"])
-            
-            # Devolvemos respuesta a Gemini
             response = chat.send_message(
                 Part.from_function_response(
                     name="consultar_disponibilidad",
                     response={"content": resultado}
                 )
             )
-            
+
     return response.text
+
+
+async def process_user_message(user_text: str) -> str:
+    """Procesa el mensaje del usuario con Gemini (async)."""
+    return await asyncio.to_thread(_process_sync, user_text)
