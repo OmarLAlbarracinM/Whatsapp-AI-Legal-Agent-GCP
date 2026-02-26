@@ -1,4 +1,5 @@
 import asyncio
+import traceback
 from google.cloud import dialogflowcx_v3beta1 as dialogflow
 from google.api_core.client_options import ClientOptions
 from app.core.config import settings
@@ -41,5 +42,6 @@ async def send_to_agent(session_id: str, user_text: str) -> str:
     try:
         return await asyncio.to_thread(_send_to_agent_sync, session_id, user_text)
     except Exception as e:
-        print(f"Error comunicando con el agente: {e}")
+        print(f"[agent_service] ERROR: {e}")
+        print(traceback.format_exc())
         return "Lo siento, hubo un error procesando tu solicitud. Por favor intenta de nuevo."
